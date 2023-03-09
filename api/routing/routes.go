@@ -12,6 +12,8 @@ func Routes() http.Handler {
 	mux := chi.NewRouter()
 
 	mux.Get("/users", handler.AllUsers)
+	mux.Get("/user", handler.GetUser)
+	mux.Get("/invite", handler.InsertFriend)
 
 	return mux
 }

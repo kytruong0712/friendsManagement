@@ -30,3 +30,26 @@ func AllUsers(w http.ResponseWriter, r *http.Request) {
 
 	_ = utils.WriteJSON(w, http.StatusOK, users)
 }
+
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	users, err := dbrepo.GetUser("tom@example.com")
+	if err != nil {
+		utils.ErrorJSON(w, err)
+		return
+	}
+
+	_ = utils.WriteJSON(w, http.StatusOK, users)
+}
+
+func InsertFriend(w http.ResponseWriter, r *http.Request) {
+	err := dbrepo.InsertFriend("andrew@example.com", "donald@example.com")
+
+	if err != nil {
+		utils.ErrorJSON(w, err)
+		return
+	}
+
+	users, _ := dbrepo.AllUsers()
+
+	_ = utils.WriteJSON(w, http.StatusOK, users)
+}
