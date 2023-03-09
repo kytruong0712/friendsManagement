@@ -5,6 +5,7 @@ import (
 	"backend/utils"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/lib/pq"
@@ -87,7 +88,7 @@ func GetUser(email string) (*presenter.User, error) {
 	return &user, nil
 }
 
-func InsertFriend(email string, friend string) error {
+func InsertFriend(email string, friend string, stmt string) error {
 	if email == friend {
 		return errors.New("2 input emails are the same")
 	}
@@ -105,18 +106,12 @@ func InsertFriend(email string, friend string) error {
 		return errFriend
 	}
 
-	stmt := `update public.user
-			set    friends = (select array_agg(distinct e) from unnest(friends || '{$2}') e)
-			where  not friends @> '{$2}' and email = '$1';
-			
-			UPDATE public.user SET friends = '{$2}'
-			where  email = '$1' and friends IS NULL;`
-
 	_, erro := utils.DBConn.ExecContext(ctx, stmt,
 		email,
 		friend,
 	)
 	if erro != nil {
+		fmt.Println("erro", erro)
 		return err
 	}
 

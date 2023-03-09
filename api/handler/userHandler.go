@@ -42,7 +42,19 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func InsertFriend(w http.ResponseWriter, r *http.Request) {
-	err := dbrepo.InsertFriend("andrew@example.com", "donald@example.com")
+	err := dbrepo.InsertFriend("andrew@example.com", "donald@example.com",
+		`update public.user
+		set    friends = (select array_agg(distinct e) from unnest(friends || ARRAY[$2]) e)
+		where  not friends @> ARRAY[$2] and email = $1;`)
+
+	if err != nil {
+		utils.ErrorJSON(w, err)
+		return
+	}
+
+	err = dbrepo.InsertFriend("andrew@example.com", "donald@example.com",
+		`UPDATE public.user SET friends = ARRAY[$2]
+		where  email = $1 and friends IS NULL;`)
 
 	if err != nil {
 		utils.ErrorJSON(w, err)
