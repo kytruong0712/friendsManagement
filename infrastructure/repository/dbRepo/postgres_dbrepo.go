@@ -36,6 +36,7 @@ func AllUsers() ([]*presenter.User, error) {
 			&user.Email,
 			pq.Array(&user.Friends),
 			pq.Array(&user.Subscribe),
+			pq.Array(&user.Blocks),
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		)
@@ -65,6 +66,7 @@ func GetUser(email string) (*presenter.User, error) {
 		&user.Email,
 		pq.Array(&user.Friends),
 		pq.Array(&user.Subscribe),
+		pq.Array(&user.Blocks),
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -104,4 +106,39 @@ func InsertFriend(email string, friend string, stmt string) error {
 	}
 
 	return nil
+}
+
+func VerifyBlock(requestor string, target string) (*presenter.IsBlock, error) {
+	if requestor == target {
+		return nil, errors.New("2 input emails are the same")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	_, err := GetUser(requestor)
+	if err != nil {
+		return nil, err
+	}
+
+	_, errTarget := GetUser(target)
+	if errTarget != nil {
+		return nil, errTarget
+	}
+
+	query := constants.VerifyBlock
+
+	row := utils.DBConn.QueryRowContext(ctx, query, requestor, target)
+
+	var blocked presenter.IsBlock
+
+	err = row.Scan(
+		&blocked.Blocked,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &blocked, nil
 }

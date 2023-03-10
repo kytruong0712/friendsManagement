@@ -30,6 +30,7 @@ CREATE TABLE public.user (
     email character varying(255) unique,
     friends TEXT [],
     subscribe TEXT [],
+    blocks TEXT [],
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );

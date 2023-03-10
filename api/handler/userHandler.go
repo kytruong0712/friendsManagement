@@ -5,6 +5,7 @@ import (
 	dbrepo "backend/infrastructure/repository/dbRepo"
 	"backend/utils"
 	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -25,16 +26,6 @@ func Home(w http.ResponseWriter, r *http.Request) {
 func AllUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := dbrepo.AllUsers()
-	if err != nil {
-		utils.ErrorJSON(w, err)
-		return
-	}
-
-	_ = utils.WriteJSON(w, http.StatusOK, users)
-}
-
-func GetUser(w http.ResponseWriter, r *http.Request) {
-	users, err := dbrepo.GetUser("tom@example.com")
 	if err != nil {
 		utils.ErrorJSON(w, err)
 		return
@@ -181,12 +172,28 @@ func InsertFriend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := utils.JSONResponse{
-		Success: true,
-		Message: "create a friend connection successfully",
+	isBlocked, erro := dbrepo.VerifyBlock(email, friend)
+	if erro != nil {
+		utils.ErrorJSON(w, erro, http.StatusBadRequest)
+		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, resp)
+	if isBlocked.Blocked {
+		resp := utils.JSONResponse{
+			Success: false,
+			Message: fmt.Sprintf("Cannot add friend because %s has blocked %s", email, friend),
+		}
+
+		utils.WriteJSON(w, http.StatusOK, resp)
+	} else {
+		resp := utils.JSONResponse{
+			Success: true,
+			Message: "create a friend connection successfully",
+		}
+
+		utils.WriteJSON(w, http.StatusOK, resp)
+	}
+
 }
 
 func CreateSubscribe(w http.ResponseWriter, r *http.Request) {
@@ -217,9 +224,61 @@ func CreateSubscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isBlocked, erro := dbrepo.VerifyBlock(requestor, target)
+	if erro != nil {
+		utils.ErrorJSON(w, erro, http.StatusBadRequest)
+		return
+	}
+
+	if isBlocked.Blocked {
+		resp := utils.JSONResponse{
+			Success: false,
+			Message: fmt.Sprintf("Cannot subscribe because %s has blocked %s", requestor, target),
+		}
+
+		utils.WriteJSON(w, http.StatusOK, resp)
+	} else {
+		resp := utils.JSONResponse{
+			Success: true,
+			Message: "create subscribe successfully",
+		}
+
+		utils.WriteJSON(w, http.StatusOK, resp)
+	}
+
+}
+
+func CreateBlock(w http.ResponseWriter, r *http.Request) {
+	// read json payload
+	var requestPayload struct {
+		Requestor string `json:"requestor"`
+		Target    string `json:"target"`
+	}
+
+	err := utils.ReadJSON(w, r, &requestPayload)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	requestor := requestPayload.Requestor
+	target := requestPayload.Target
+
+	err = dbrepo.InsertFriend(requestor, target, constants.AddBlockToExistingSubscribeArray)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = dbrepo.InsertFriend(requestor, target, constants.AddBlockToNullSubscribeArray)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
 	resp := utils.JSONResponse{
 		Success: true,
-		Message: "create a friend connection successfully",
+		Message: "connection was blocked successfully",
 	}
 
 	utils.WriteJSON(w, http.StatusOK, resp)
