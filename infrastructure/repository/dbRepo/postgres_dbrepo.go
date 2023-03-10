@@ -137,6 +137,7 @@ func VerifyBlock(requestor string, target string) (*presenter.IsBlock, error) {
 	)
 
 	if err != nil {
+		fmt.Println("blocked error", err)
 		return nil, err
 	}
 

@@ -173,27 +173,41 @@ func InsertFriend(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-
-	isBlocked, erro := dbrepo.VerifyBlock(email, friend)
-	if erro != nil {
-		utils.ErrorJSON(w, erro, http.StatusBadRequest)
+	users, err := dbrepo.GetUser(email)
+	if err != nil {
+		utils.ErrorJSON(w, err)
 		return
 	}
 
-	if isBlocked.Blocked {
-		resp := utils.JSONResponse{
-			Success: false,
-			Message: fmt.Sprintf("Cannot add friend because %s has blocked %s", email, friend),
-		}
-
-		utils.WriteJSON(w, http.StatusOK, resp)
-	} else {
+	if len(users.Blocks) == 0 {
 		resp := utils.JSONResponse{
 			Success: true,
 			Message: "create a friend connection successfully",
 		}
 
 		utils.WriteJSON(w, http.StatusOK, resp)
+	} else {
+		isBlocked, erro := dbrepo.VerifyBlock(email, friend)
+		if erro != nil {
+			utils.ErrorJSON(w, erro, http.StatusBadRequest)
+			return
+		}
+
+		if isBlocked.Blocked {
+			resp := utils.JSONResponse{
+				Success: false,
+				Message: fmt.Sprintf("Cannot add friend because %s has blocked %s", email, friend),
+			}
+
+			utils.WriteJSON(w, http.StatusOK, resp)
+		} else {
+			resp := utils.JSONResponse{
+				Success: true,
+				Message: "create a friend connection successfully",
+			}
+
+			utils.WriteJSON(w, http.StatusOK, resp)
+		}
 	}
 
 }
@@ -226,26 +240,41 @@ func CreateSubscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isBlocked, erro := dbrepo.VerifyBlock(requestor, target)
-	if erro != nil {
-		utils.ErrorJSON(w, erro, http.StatusBadRequest)
+	users, err := dbrepo.GetUser(requestor)
+	if err != nil {
+		utils.ErrorJSON(w, err)
 		return
 	}
 
-	if isBlocked.Blocked {
-		resp := utils.JSONResponse{
-			Success: false,
-			Message: fmt.Sprintf("Cannot subscribe because %s has blocked %s", requestor, target),
-		}
-
-		utils.WriteJSON(w, http.StatusOK, resp)
-	} else {
+	if len(users.Blocks) == 0 {
 		resp := utils.JSONResponse{
 			Success: true,
 			Message: "create subscribe successfully",
 		}
 
 		utils.WriteJSON(w, http.StatusOK, resp)
+	} else {
+		isBlocked, erro := dbrepo.VerifyBlock(requestor, target)
+		if erro != nil {
+			utils.ErrorJSON(w, erro, http.StatusBadRequest)
+			return
+		}
+
+		if isBlocked.Blocked {
+			resp := utils.JSONResponse{
+				Success: false,
+				Message: fmt.Sprintf("Cannot subscribe because %s has blocked %s", requestor, target),
+			}
+
+			utils.WriteJSON(w, http.StatusOK, resp)
+		} else {
+			resp := utils.JSONResponse{
+				Success: true,
+				Message: "create subscribe successfully",
+			}
+
+			utils.WriteJSON(w, http.StatusOK, resp)
+		}
 	}
 
 }
