@@ -13,6 +13,12 @@ type JSONResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
+type JSONFriendList struct {
+	Success bool     `json:"success"`
+	Friends []string `json:"friends"`
+	Count   int      `json:"count"`
+}
+
 func WriteJSON(w http.ResponseWriter, status int, data interface{}, headers ...http.Header) error {
 	out, err := json.Marshal(data)
 	if err != nil {

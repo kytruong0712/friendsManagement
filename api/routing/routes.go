@@ -14,6 +14,7 @@ func Routes() http.Handler {
 	mux.Get("/users", handler.AllUsers)
 	mux.Get("/user", handler.GetUser)
 	mux.Post("/invite", handler.InsertFriend)
+	mux.Post("/friends", handler.GetFriendList)
 
 	return mux
 }

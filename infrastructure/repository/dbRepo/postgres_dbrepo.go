@@ -2,6 +2,7 @@ package dbrepo
 
 import (
 	"backend/api/presenter"
+	"backend/constants"
 	"backend/utils"
 	"context"
 	"errors"
@@ -17,14 +18,7 @@ func AllUsers() ([]*presenter.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `
-	select
-		id, name, email, friends, subscribe, created_at, updated_at
-	from
-		public.user
-	order by
-	id
-	`
+	query := constants.GetAllUsers
 
 	rows, err := utils.DBConn.QueryContext(ctx, query)
 	if err != nil {
@@ -59,14 +53,8 @@ func GetUser(email string) (*presenter.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `
-		select
-			id, name, email, friends, subscribe, created_at, updated_at
-		from
-			public.user
-		where 
-			email = $1
-	`
+	query := constants.GetUser
+
 	row := utils.DBConn.QueryRowContext(ctx, query, email)
 
 	var user presenter.User
