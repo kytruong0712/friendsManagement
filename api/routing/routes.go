@@ -13,7 +13,7 @@ func Routes() http.Handler {
 
 	mux.Get("/users", handler.AllUsers)
 	mux.Get("/user", handler.GetUser)
-	mux.Get("/invite", handler.InsertFriend)
+	mux.Post("/invite", handler.InsertFriend)
 
 	return mux
 }
