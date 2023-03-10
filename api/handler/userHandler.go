@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/mcnijman/go-emailaddress"
 )
 
 func Home(w http.ResponseWriter, r *http.Request) {
@@ -282,4 +284,45 @@ func CreateBlock(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, resp)
+}
+
+func RetrieveUpdates(w http.ResponseWriter, r *http.Request) {
+	// read json payload
+	var requestPayload struct {
+		Sender string `json:"sender"`
+		Text   string `json:"text"`
+	}
+
+	err := utils.ReadJSON(w, r, &requestPayload)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	sender := requestPayload.Sender
+	mentions := emailaddress.Find([]byte(requestPayload.Text), false)
+
+	users, err := dbrepo.GetUser(sender)
+	if err != nil {
+		utils.ErrorJSON(w, err)
+		return
+	}
+
+	rereiveList := make([]string, 0)
+	rereiveList = utils.AppendWithoutDuplicate(rereiveList, users.Friends)
+	rereiveList = utils.AppendWithoutDuplicate(rereiveList, users.Subscribe)
+	for _, m := range mentions {
+		rereiveList = utils.AppendWithoutDuplicate(rereiveList, []string{m.LocalPart + "@" + m.Domain})
+	}
+
+	rereiveList = utils.FindMissing(rereiveList, users.Blocks)
+
+	resp := utils.JSONReceiveUpdates{
+		Success:    true,
+		Message:    "retreive updates successfully",
+		Recipients: rereiveList,
+	}
+
+	utils.WriteJSON(w, http.StatusOK, resp)
+
 }

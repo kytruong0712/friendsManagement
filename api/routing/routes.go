@@ -17,6 +17,7 @@ func Routes() http.Handler {
 	mux.Post("/common", handler.GetCommonFriends)
 	mux.Post("/subscribe", handler.CreateSubscribe)
 	mux.Post("/blocks", handler.CreateBlock)
+	mux.Post("/retrieve", handler.RetrieveUpdates)
 
 	return mux
 }

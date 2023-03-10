@@ -19,6 +19,12 @@ type JSONFriendList struct {
 	Count   int      `json:"count"`
 }
 
+type JSONReceiveUpdates struct {
+	Success    bool     `json:"success"`
+	Message    string   `json:"message"`
+	Recipients []string `json:"recipients"`
+}
+
 func WriteJSON(w http.ResponseWriter, status int, data interface{}, headers ...http.Header) error {
 	out, err := json.Marshal(data)
 	if err != nil {

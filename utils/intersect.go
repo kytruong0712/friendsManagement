@@ -128,3 +128,41 @@ func contains(a interface{}, e interface{}) bool {
 	}
 	return false
 }
+
+func AppendWithoutDuplicate(arr []string, text []string) []string {
+	textMap := map[string]int{}
+	res := make([]string, 0)
+
+	for _, n := range arr {
+		if _, ok := textMap[n]; !ok {
+			res = append(res, n)
+			textMap[n] = 1
+		}
+	}
+
+	for _, item := range text {
+		if _, ok := textMap[item]; !ok {
+			res = append(res, item)
+		}
+	}
+	return res
+}
+
+func FindMissing(a []string, b []string) []string {
+	textMap := map[string]int{}
+	res := make([]string, 0)
+
+	for _, n := range b {
+		if _, ok := textMap[n]; !ok {
+			textMap[n] = 1
+		}
+	}
+
+	for _, n := range a {
+		if _, ok := textMap[n]; !ok {
+			res = append(res, n)
+		}
+	}
+
+	return res
+}
