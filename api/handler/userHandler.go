@@ -79,6 +79,65 @@ func GetFriendList(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, resp)
 }
 
+func GetCommonFriends(w http.ResponseWriter, r *http.Request) {
+	// read json payload
+	var requestPayload struct {
+		Friends []string `json:"friends"`
+	}
+
+	err := utils.ReadJSON(w, r, &requestPayload)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if len(requestPayload.Friends) != 2 {
+		utils.ErrorJSON(w, errors.New("invalid input"), http.StatusBadRequest)
+	}
+
+	email := requestPayload.Friends[0]
+	friend := requestPayload.Friends[1]
+
+	users1, err1 := dbrepo.GetUser(email)
+	if err1 != nil {
+		utils.ErrorJSON(w, err1)
+		return
+	}
+
+	users2, err2 := dbrepo.GetUser(friend)
+	if err2 != nil {
+		utils.ErrorJSON(w, err2)
+		return
+	}
+
+	friends1 := make([]string, 0)
+	if len(users1.Friends) > 0 {
+		friends1 = users1.Friends
+	}
+
+	friends2 := make([]string, 0)
+	if len(users2.Friends) > 0 {
+		friends2 = users2.Friends
+	}
+
+	temp_intersect := utils.HashGeneric(friends1, friends2)
+	intersect := make([]string, 0)
+	for _, value := range temp_intersect {
+		if value != email && value != friend {
+			intersect = append(intersect, value)
+		}
+	}
+
+	resp := utils.JSONFriendList{
+		Success: true,
+		Friends: intersect,
+		Count:   len(intersect),
+	}
+
+	utils.WriteJSON(w, http.StatusOK, resp)
+
+}
+
 func InsertFriend(w http.ResponseWriter, r *http.Request) {
 	// read json payload
 	var requestPayload struct {
