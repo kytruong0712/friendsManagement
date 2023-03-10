@@ -188,3 +188,39 @@ func InsertFriend(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusOK, resp)
 }
+
+func CreateSubscribe(w http.ResponseWriter, r *http.Request) {
+	// read json payload
+	var requestPayload struct {
+		Requestor string `json:"requestor"`
+		Target    string `json:"target"`
+	}
+
+	err := utils.ReadJSON(w, r, &requestPayload)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	requestor := requestPayload.Requestor
+	target := requestPayload.Target
+
+	err = dbrepo.InsertFriend(requestor, target, constants.AddSubscribeToExistingSubscribeArray)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = dbrepo.InsertFriend(requestor, target, constants.AddSubscribeToNullSubscribeArray)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	resp := utils.JSONResponse{
+		Success: true,
+		Message: "create a friend connection successfully",
+	}
+
+	utils.WriteJSON(w, http.StatusOK, resp)
+}
