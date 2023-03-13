@@ -36,6 +36,28 @@ func AllUsers(w http.ResponseWriter, r *http.Request) {
 	_ = utils.WriteJSON(w, http.StatusOK, users)
 }
 
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	// read json payload
+	var requestPayload struct {
+		Email string `json:"email"`
+	}
+
+	err := utils.ReadJSON(w, r, &requestPayload)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	email := requestPayload.Email
+	users, err := dbrepo.GetUser(email)
+	if err != nil {
+		utils.ErrorJSON(w, err)
+		return
+	}
+
+	_ = utils.WriteJSON(w, http.StatusOK, users)
+}
+
 func GetFriendList(w http.ResponseWriter, r *http.Request) {
 	// read json payload
 	var requestPayload struct {
