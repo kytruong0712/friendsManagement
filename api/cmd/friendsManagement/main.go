@@ -1,7 +1,6 @@
 package main
 
 import (
-	"backend/api/internal/app/connection"
 	"backend/api/internal/config"
 	"backend/api/internal/handler/router"
 	"fmt"

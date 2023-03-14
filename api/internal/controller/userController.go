@@ -1,13 +1,14 @@
 package controller
 
 import (
-	"backend/api/internal/app/connection"
-	"backend/api/internal/presenter"
-	"backend/api/pkg/constants"
 	"context"
 	"errors"
 	"fmt"
 	"time"
+
+	"backend/api/internal/app/db"
+	"backend/api/internal/presenter"
+	"backend/api/pkg/constants"
 
 	"github.com/lib/pq"
 )
@@ -21,7 +22,7 @@ func AllUsers() ([]*presenter.User, error) {
 
 	query := constants.GetAllUsers
 
-	rows, err := connection.DBConn.QueryContext(ctx, query)
+	rows, err := db.DBConn.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +59,7 @@ func GetUser(email string) (*presenter.User, error) {
 
 	query := constants.GetUser
 
-	row := connection.DBConn.QueryRowContext(ctx, query, email)
+	row := db.DBConn.QueryRowContext(ctx, query, email)
 
 	var user presenter.User
 
@@ -99,7 +100,7 @@ func InsertFriend(email string, friend string, stmt string) error {
 		return errFriend
 	}
 
-	_, erro := connection.DBConn.ExecContext(ctx, stmt,
+	_, erro := db.DBConn.ExecContext(ctx, stmt,
 		email,
 		friend,
 	)
@@ -132,7 +133,7 @@ func VerifyBlock(requestor string, target string) (*presenter.IsBlock, error) {
 
 	query := constants.VerifyBlock
 
-	row := connection.DBConn.QueryRowContext(ctx, query, requestor, target)
+	row := db.DBConn.QueryRowContext(ctx, query, requestor, target)
 
 	var blocked presenter.IsBlock
 
