@@ -1,7 +1,7 @@
-package routing
+package router
 
 import (
-	"backend/api/handler"
+	handler "backend/api/internal/handler/rest"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -12,6 +12,7 @@ func Routes() http.Handler {
 	mux := chi.NewRouter()
 
 	mux.Get("/users", handler.AllUsers)
+	mux.Post("/user", handler.GetUser)
 	mux.Post("/invite", handler.InsertFriend)
 	mux.Post("/friends", handler.GetFriendList)
 	mux.Post("/common", handler.GetCommonFriends)

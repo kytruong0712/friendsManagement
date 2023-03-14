@@ -1,14 +1,12 @@
 package main
 
 import (
-	"backend/api/routing"
-	"backend/config"
-	"backend/utils"
-
-	"net/http"
-
+	"backend/api/internal/app/connection"
+	"backend/api/internal/config"
+	"backend/api/internal/handler/router"
 	"fmt"
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -16,16 +14,16 @@ func main() {
 		config.DB_HOST, config.DB_PORT, config.DB_USER, config.DB_PASSWORD, config.DB_DATABASE)
 
 	// connect to the database
-	err := utils.ConnectToDB(dataSourceName)
+	err := connection.ConnectToDB(dataSourceName)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	defer utils.DBConn.Close()
+	defer connection.DBConn.Close()
 
 	log.Println("Starting application on port", config.API_PORT)
 
 	// start a web server
-	err = http.ListenAndServe(fmt.Sprintf(":%d", config.API_PORT), routing.Routes())
+	err = http.ListenAndServe(fmt.Sprintf(":%d", config.API_PORT), router.Routes())
 	if err != nil {
 		log.Fatal(err)
 	}

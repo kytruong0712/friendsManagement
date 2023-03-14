@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"backend/constants"
-	dbrepo "backend/infrastructure/repository/dbRepo"
-	"backend/utils"
+	"backend/api/internal/controller"
+	"backend/api/pkg/constants"
+	"backend/api/pkg/utils"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,23 +11,31 @@ import (
 	"github.com/mcnijman/go-emailaddress"
 )
 
-func Home(w http.ResponseWriter, r *http.Request) {
-	var payload = struct {
-		Status  string `json:"status"`
-		Message string `json:"message"`
-		Version string `json:"version"`
-	}{
-		Status:  "active",
-		Message: "Go Movies up and running",
-		Version: "1.0.0",
-	}
-
-	_ = utils.WriteJSON(w, http.StatusOK, payload)
-}
-
 func AllUsers(w http.ResponseWriter, r *http.Request) {
 
-	users, err := dbrepo.AllUsers()
+	users, err := controller.AllUsers()
+	if err != nil {
+		utils.ErrorJSON(w, err)
+		return
+	}
+
+	_ = utils.WriteJSON(w, http.StatusOK, users)
+}
+
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	// read json payload
+	var requestPayload struct {
+		Email string `json:"email"`
+	}
+
+	err := utils.ReadJSON(w, r, &requestPayload)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	email := requestPayload.Email
+	users, err := controller.GetUser(email)
 	if err != nil {
 		utils.ErrorJSON(w, err)
 		return
@@ -50,7 +58,7 @@ func GetFriendList(w http.ResponseWriter, r *http.Request) {
 
 	email := requestPayload.Email
 
-	users, err := dbrepo.GetUser(email)
+	users, err := controller.GetUser(email)
 	if err != nil {
 		utils.ErrorJSON(w, err)
 		return
@@ -91,13 +99,13 @@ func GetCommonFriends(w http.ResponseWriter, r *http.Request) {
 	email := requestPayload.Friends[0]
 	friend := requestPayload.Friends[1]
 
-	users1, err1 := dbrepo.GetUser(email)
+	users1, err1 := controller.GetUser(email)
 	if err1 != nil {
 		utils.ErrorJSON(w, err1)
 		return
 	}
 
-	users2, err2 := dbrepo.GetUser(friend)
+	users2, err2 := controller.GetUser(friend)
 	if err2 != nil {
 		utils.ErrorJSON(w, err2)
 		return
@@ -150,30 +158,30 @@ func InsertFriend(w http.ResponseWriter, r *http.Request) {
 	email := requestPayload.Friends[0]
 	friend := requestPayload.Friends[1]
 
-	err = dbrepo.InsertFriend(email, friend, constants.AddFriendToExistingFriendsArray)
+	err = controller.InsertFriend(email, friend, constants.AddFriendToExistingFriendsArray)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	err = dbrepo.InsertFriend(email, friend, constants.AddFriendToNullFriendsArray)
+	err = controller.InsertFriend(email, friend, constants.AddFriendToNullFriendsArray)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	err = dbrepo.InsertFriend(friend, email, constants.AddFriendToExistingFriendsArray)
+	err = controller.InsertFriend(friend, email, constants.AddFriendToExistingFriendsArray)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	err = dbrepo.InsertFriend(friend, email, constants.AddFriendToNullFriendsArray)
+	err = controller.InsertFriend(friend, email, constants.AddFriendToNullFriendsArray)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	users, err := dbrepo.GetUser(email)
+	users, err := controller.GetUser(email)
 	if err != nil {
 		utils.ErrorJSON(w, err)
 		return
@@ -187,7 +195,7 @@ func InsertFriend(w http.ResponseWriter, r *http.Request) {
 
 		utils.WriteJSON(w, http.StatusOK, resp)
 	} else {
-		isBlocked, erro := dbrepo.VerifyBlock(email, friend)
+		isBlocked, erro := controller.VerifyBlock(email, friend)
 		if erro != nil {
 			utils.ErrorJSON(w, erro, http.StatusBadRequest)
 			return
@@ -228,19 +236,19 @@ func CreateSubscribe(w http.ResponseWriter, r *http.Request) {
 	requestor := requestPayload.Requestor
 	target := requestPayload.Target
 
-	err = dbrepo.InsertFriend(requestor, target, constants.AddSubscribeToExistingSubscribeArray)
+	err = controller.InsertFriend(requestor, target, constants.AddSubscribeToExistingSubscribeArray)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	err = dbrepo.InsertFriend(requestor, target, constants.AddSubscribeToNullSubscribeArray)
+	err = controller.InsertFriend(requestor, target, constants.AddSubscribeToNullSubscribeArray)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	users, err := dbrepo.GetUser(requestor)
+	users, err := controller.GetUser(requestor)
 	if err != nil {
 		utils.ErrorJSON(w, err)
 		return
@@ -254,7 +262,7 @@ func CreateSubscribe(w http.ResponseWriter, r *http.Request) {
 
 		utils.WriteJSON(w, http.StatusOK, resp)
 	} else {
-		isBlocked, erro := dbrepo.VerifyBlock(requestor, target)
+		isBlocked, erro := controller.VerifyBlock(requestor, target)
 		if erro != nil {
 			utils.ErrorJSON(w, erro, http.StatusBadRequest)
 			return
@@ -295,13 +303,13 @@ func CreateBlock(w http.ResponseWriter, r *http.Request) {
 	requestor := requestPayload.Requestor
 	target := requestPayload.Target
 
-	err = dbrepo.InsertFriend(requestor, target, constants.AddBlockToExistingSubscribeArray)
+	err = controller.InsertFriend(requestor, target, constants.AddBlockToExistingSubscribeArray)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	err = dbrepo.InsertFriend(requestor, target, constants.AddBlockToNullSubscribeArray)
+	err = controller.InsertFriend(requestor, target, constants.AddBlockToNullSubscribeArray)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -331,7 +339,7 @@ func RetrieveUpdates(w http.ResponseWriter, r *http.Request) {
 	sender := requestPayload.Sender
 	mentions := emailaddress.Find([]byte(requestPayload.Text), false)
 
-	users, err := dbrepo.GetUser(sender)
+	users, err := controller.GetUser(sender)
 	if err != nil {
 		utils.ErrorJSON(w, err)
 		return

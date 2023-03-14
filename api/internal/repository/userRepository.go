@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"backend/api/presenter"
+	"backend/api/internal/presenter"
 	"database/sql"
 )
 
