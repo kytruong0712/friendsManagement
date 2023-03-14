@@ -14,6 +14,7 @@ import (
 
 const dbTimeout = time.Second * 3
 
+// AllUsers: Get All Users from database
 func AllUsers() ([]*presenter.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -50,6 +51,7 @@ func AllUsers() ([]*presenter.User, error) {
 	return users, nil
 }
 
+// Get user by email
 func GetUser(email string) (*presenter.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -78,6 +80,7 @@ func GetUser(email string) (*presenter.User, error) {
 	return &user, nil
 }
 
+// InsertFriend: Insert connection between 2 user
 func InsertFriend(email string, friend string, stmt string) error {
 	if email == friend {
 		return errors.New("2 input emails are the same")
@@ -108,6 +111,7 @@ func InsertFriend(email string, friend string, stmt string) error {
 	return nil
 }
 
+// VerifyBlock: Verify whether requestor is blocking target or not
 func VerifyBlock(requestor string, target string) (*presenter.IsBlock, error) {
 	if requestor == target {
 		return nil, errors.New("2 input emails are the same")

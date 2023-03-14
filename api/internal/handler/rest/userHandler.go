@@ -11,6 +11,7 @@ import (
 	"github.com/mcnijman/go-emailaddress"
 )
 
+// AllUsers: get all users
 func AllUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := controller.AllUsers()
@@ -22,6 +23,7 @@ func AllUsers(w http.ResponseWriter, r *http.Request) {
 	_ = utils.WriteJSON(w, http.StatusOK, users)
 }
 
+// GetUser: get user by email
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	// read json payload
 	var requestPayload struct {
@@ -44,6 +46,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	_ = utils.WriteJSON(w, http.StatusOK, users)
 }
 
+// GetFriendList: retrieve the friends list for an email address..
 func GetFriendList(w http.ResponseWriter, r *http.Request) {
 	// read json payload
 	var requestPayload struct {
@@ -80,6 +83,7 @@ func GetFriendList(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, resp)
 }
 
+// GetCommonFriends: retrieve the common friends list between two email addresses.
 func GetCommonFriends(w http.ResponseWriter, r *http.Request) {
 	// read json payload
 	var requestPayload struct {
@@ -139,6 +143,7 @@ func GetCommonFriends(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// InsertFriend: create a friend connection between two email addresses.
 func InsertFriend(w http.ResponseWriter, r *http.Request) {
 	// read json payload
 	var requestPayload struct {
@@ -220,6 +225,7 @@ func InsertFriend(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// CreateSubscribe: subscribe to updates from an email address.
 func CreateSubscribe(w http.ResponseWriter, r *http.Request) {
 	// read json payload
 	var requestPayload struct {
@@ -287,6 +293,7 @@ func CreateSubscribe(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// CreateBlock: block updates from an email address.
 func CreateBlock(w http.ResponseWriter, r *http.Request) {
 	// read json payload
 	var requestPayload struct {
@@ -323,6 +330,7 @@ func CreateBlock(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, resp)
 }
 
+// RetrieveUpdates: retrieve all email addresses that can receive updates from an email address.
 func RetrieveUpdates(w http.ResponseWriter, r *http.Request) {
 	// read json payload
 	var requestPayload struct {

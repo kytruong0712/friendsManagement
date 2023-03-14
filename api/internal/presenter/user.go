@@ -2,6 +2,7 @@ package presenter
 
 import "time"
 
+// User: responsible for formatting the data generated as a response by handlers
 type User struct {
 	ID        int       `json:"id"`
 	Name      string    `json:"name"`

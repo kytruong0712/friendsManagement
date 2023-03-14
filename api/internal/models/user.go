@@ -1,5 +1,6 @@
 package models
 
+// User: responsible for represent User entity
 type User struct {
 	ID        int
 	Name      string

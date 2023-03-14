@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// Routes: Router of the application
 func Routes() http.Handler {
 	// create a router mux
 	mux := chi.NewRouter()

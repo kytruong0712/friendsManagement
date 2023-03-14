@@ -25,6 +25,7 @@ type JSONReceiveUpdates struct {
 	Recipients []string `json:"recipients"`
 }
 
+// WriteJSON: Write data to JSON
 func WriteJSON(w http.ResponseWriter, status int, data interface{}, headers ...http.Header) error {
 	out, err := json.Marshal(data)
 	if err != nil {
@@ -47,6 +48,7 @@ func WriteJSON(w http.ResponseWriter, status int, data interface{}, headers ...h
 	return nil
 }
 
+// ReadJSON: Read data from Json file
 func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	maxBytes := 1024 * 1024 // one megabyte
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -68,6 +70,7 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	return nil
 }
 
+// ErrorJSON: output JSON error
 func ErrorJSON(w http.ResponseWriter, err error, status ...int) error {
 	statusCode := http.StatusBadRequest
 

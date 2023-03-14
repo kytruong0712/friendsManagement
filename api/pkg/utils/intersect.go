@@ -129,6 +129,7 @@ func contains(a interface{}, e interface{}) bool {
 	return false
 }
 
+// AppendWithoutDuplicate: function to append two array without dulicating elements
 func AppendWithoutDuplicate(arr []string, text []string) []string {
 	textMap := map[string]int{}
 	res := make([]string, 0)
@@ -148,6 +149,7 @@ func AppendWithoutDuplicate(arr []string, text []string) []string {
 	return res
 }
 
+// FindMissing: return the elements in array a and not in array b
 func FindMissing(a []string, b []string) []string {
 	textMap := map[string]int{}
 	res := make([]string, 0)

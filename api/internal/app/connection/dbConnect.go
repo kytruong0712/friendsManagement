@@ -27,6 +27,7 @@ func openDB(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
+// ConnectToDB: use to connect to the database
 func ConnectToDB(dns string) error {
 	conn, err := openDB(dns)
 	DBConn = conn
