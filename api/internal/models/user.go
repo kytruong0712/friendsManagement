@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 // User: responsible for represent User entity
 type User struct {
 	ID        int
@@ -7,4 +9,7 @@ type User struct {
 	Email     string
 	Friends   []string
 	Subscribe []string
+	Blocks    []string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

@@ -1,373 +1,236 @@
 package handler
 
 import (
-	"backend/api/internal/controller"
-	"backend/api/pkg/constants"
 	"backend/api/pkg/utils"
 	"errors"
-	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/mcnijman/go-emailaddress"
+
+	controller "backend/api/internal/controller/user"
 )
 
-// AllUsers: get all users
-func AllUsers(w http.ResponseWriter, r *http.Request) {
-
-	users, err := controller.AllUsers()
-	if err != nil {
-		utils.ErrorJSON(w, err)
-		return
-	}
-
-	_ = utils.WriteJSON(w, http.StatusOK, users)
-}
-
-// GetUser: get user by email
-func GetUser(w http.ResponseWriter, r *http.Request) {
-	// read json payload
-	var requestPayload struct {
-		Email string `json:"email"`
-	}
-
-	err := utils.ReadJSON(w, r, &requestPayload)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	email := requestPayload.Email
-	users, err := controller.GetUser(email)
-	if err != nil {
-		utils.ErrorJSON(w, err)
-		return
-	}
-
-	_ = utils.WriteJSON(w, http.StatusOK, users)
-}
-
-// GetFriendList: retrieve the friends list for an email address..
-func GetFriendList(w http.ResponseWriter, r *http.Request) {
-	// read json payload
-	var requestPayload struct {
-		Email string `json:"email"`
-	}
-
-	err := utils.ReadJSON(w, r, &requestPayload)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	email := requestPayload.Email
-
-	users, err := controller.GetUser(email)
-	if err != nil {
-		utils.ErrorJSON(w, err)
-		return
-	}
-
-	count := len(users.Friends)
-
-	friendsList := make([]string, 0)
-	if count > 0 {
-		friendsList = users.Friends
-	}
-
-	resp := utils.JSONFriendList{
-		Success: true,
-		Friends: friendsList,
-		Count:   count,
-	}
-
-	utils.WriteJSON(w, http.StatusOK, resp)
-}
-
-// GetCommonFriends: retrieve the common friends list between two email addresses.
-func GetCommonFriends(w http.ResponseWriter, r *http.Request) {
-	// read json payload
-	var requestPayload struct {
-		Friends []string `json:"friends"`
-	}
-
-	err := utils.ReadJSON(w, r, &requestPayload)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	if len(requestPayload.Friends) != 2 {
-		utils.ErrorJSON(w, errors.New("invalid input"), http.StatusBadRequest)
-	}
-
-	email := requestPayload.Friends[0]
-	friend := requestPayload.Friends[1]
-
-	users1, err1 := controller.GetUser(email)
-	if err1 != nil {
-		utils.ErrorJSON(w, err1)
-		return
-	}
-
-	users2, err2 := controller.GetUser(friend)
-	if err2 != nil {
-		utils.ErrorJSON(w, err2)
-		return
-	}
-
-	friends1 := make([]string, 0)
-	if len(users1.Friends) > 0 {
-		friends1 = users1.Friends
-	}
-
-	friends2 := make([]string, 0)
-	if len(users2.Friends) > 0 {
-		friends2 = users2.Friends
-	}
-
-	temp_intersect := utils.HashGeneric(friends1, friends2)
-	intersect := make([]string, 0)
-	for _, value := range temp_intersect {
-		if value != email && value != friend {
-			intersect = append(intersect, value)
-		}
-	}
-
-	resp := utils.JSONFriendList{
-		Success: true,
-		Friends: intersect,
-		Count:   len(intersect),
-	}
-
-	utils.WriteJSON(w, http.StatusOK, resp)
-
-}
-
-// InsertFriend: create a friend connection between two email addresses.
-func InsertFriend(w http.ResponseWriter, r *http.Request) {
-	// read json payload
-	var requestPayload struct {
-		Friends []string `json:"friends"`
-	}
-
-	err := utils.ReadJSON(w, r, &requestPayload)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	if len(requestPayload.Friends) != 2 {
-		utils.ErrorJSON(w, errors.New("invalid input"), http.StatusBadRequest)
-	}
-
-	email := requestPayload.Friends[0]
-	friend := requestPayload.Friends[1]
-
-	err = controller.InsertFriend(email, friend, constants.AddFriendToExistingFriendsArray)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	err = controller.InsertFriend(email, friend, constants.AddFriendToNullFriendsArray)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	err = controller.InsertFriend(friend, email, constants.AddFriendToExistingFriendsArray)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	err = controller.InsertFriend(friend, email, constants.AddFriendToNullFriendsArray)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-	users, err := controller.GetUser(email)
-	if err != nil {
-		utils.ErrorJSON(w, err)
-		return
-	}
-
-	if len(users.Blocks) == 0 {
-		resp := utils.JSONResponse{
-			Success: true,
-			Message: "create a friend connection successfully",
-		}
-
-		utils.WriteJSON(w, http.StatusOK, resp)
-	} else {
-		isBlocked, erro := controller.VerifyBlock(email, friend)
-		if erro != nil {
-			utils.ErrorJSON(w, erro, http.StatusBadRequest)
+func list(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		users, err := controller.List()
+		if err != nil {
+			utils.ErrorJSON(w, err)
 			return
 		}
 
-		if isBlocked.Blocked {
-			resp := utils.JSONResponse{
-				Success: false,
-				Message: fmt.Sprintf("Cannot add friend because %s has blocked %s", email, friend),
-			}
-
-			utils.WriteJSON(w, http.StatusOK, resp)
-		} else {
-			resp := utils.JSONResponse{
-				Success: true,
-				Message: "create a friend connection successfully",
-			}
-
-			utils.WriteJSON(w, http.StatusOK, resp)
-		}
-	}
-
+		utils.WriteJSON(w, http.StatusOK, users)
+	})
 }
 
-// CreateSubscribe: subscribe to updates from an email address.
-func CreateSubscribe(w http.ResponseWriter, r *http.Request) {
-	// read json payload
-	var requestPayload struct {
-		Requestor string `json:"requestor"`
-		Target    string `json:"target"`
-	}
-
-	err := utils.ReadJSON(w, r, &requestPayload)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	requestor := requestPayload.Requestor
-	target := requestPayload.Target
-
-	err = controller.InsertFriend(requestor, target, constants.AddSubscribeToExistingSubscribeArray)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	err = controller.InsertFriend(requestor, target, constants.AddSubscribeToNullSubscribeArray)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	users, err := controller.GetUser(requestor)
-	if err != nil {
-		utils.ErrorJSON(w, err)
-		return
-	}
-
-	if len(users.Blocks) == 0 {
-		resp := utils.JSONResponse{
-			Success: true,
-			Message: "create subscribe successfully",
+func get(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// read json payload
+		var requestPayload struct {
+			Email string `json:"email"`
 		}
 
-		utils.WriteJSON(w, http.StatusOK, resp)
-	} else {
-		isBlocked, erro := controller.VerifyBlock(requestor, target)
-		if erro != nil {
-			utils.ErrorJSON(w, erro, http.StatusBadRequest)
+		err := utils.ReadJSON(w, r, &requestPayload)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
 
-		if isBlocked.Blocked {
-			resp := utils.JSONResponse{
-				Success: false,
-				Message: fmt.Sprintf("Cannot subscribe because %s has blocked %s", requestor, target),
-			}
+		email := requestPayload.Email
 
-			utils.WriteJSON(w, http.StatusOK, resp)
-		} else {
-			resp := utils.JSONResponse{
-				Success: true,
-				Message: "create subscribe successfully",
-			}
-
-			utils.WriteJSON(w, http.StatusOK, resp)
+		users, err := controller.Get(email)
+		if err != nil {
+			utils.ErrorJSON(w, err)
+			return
 		}
-	}
 
+		utils.WriteJSON(w, http.StatusOK, users)
+	})
 }
 
-// CreateBlock: block updates from an email address.
-func CreateBlock(w http.ResponseWriter, r *http.Request) {
-	// read json payload
-	var requestPayload struct {
-		Requestor string `json:"requestor"`
-		Target    string `json:"target"`
-	}
+func createFriendship(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// read json payload
+		var requestPayload struct {
+			Friends []string `json:"friends"`
+		}
 
-	err := utils.ReadJSON(w, r, &requestPayload)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
+		err := utils.ReadJSON(w, r, &requestPayload)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
 
-	requestor := requestPayload.Requestor
-	target := requestPayload.Target
+		if len(requestPayload.Friends) != 2 {
+			utils.ErrorJSON(w, errors.New("invalid input"), http.StatusBadRequest)
+		}
 
-	err = controller.InsertFriend(requestor, target, constants.AddBlockToExistingSubscribeArray)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
+		email := requestPayload.Friends[0]
+		friend := requestPayload.Friends[1]
 
-	err = controller.InsertFriend(requestor, target, constants.AddBlockToNullSubscribeArray)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
+		resp, er := controller.CreateFriendship(email, friend)
+		if er != nil {
+			utils.ErrorJSON(w, er)
+			return
+		}
 
-	resp := utils.JSONResponse{
-		Success: true,
-		Message: "connection was blocked successfully",
-	}
-
-	utils.WriteJSON(w, http.StatusOK, resp)
+		utils.WriteJSON(w, http.StatusOK, resp)
+	})
 }
 
-// RetrieveUpdates: retrieve all email addresses that can receive updates from an email address.
-func RetrieveUpdates(w http.ResponseWriter, r *http.Request) {
-	// read json payload
-	var requestPayload struct {
-		Sender string `json:"sender"`
-		Text   string `json:"text"`
-	}
+func getFriendList(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// read json payload
+		var requestPayload struct {
+			Email string `json:"email"`
+		}
 
-	err := utils.ReadJSON(w, r, &requestPayload)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
+		err := utils.ReadJSON(w, r, &requestPayload)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
 
-	sender := requestPayload.Sender
-	mentions := emailaddress.Find([]byte(requestPayload.Text), false)
+		email := requestPayload.Email
 
-	users, err := controller.GetUser(sender)
-	if err != nil {
-		utils.ErrorJSON(w, err)
-		return
-	}
+		friendList, er := controller.GetFriendList(email)
+		if er != nil {
+			utils.ErrorJSON(w, er)
+			return
+		}
 
-	rereiveList := make([]string, 0)
-	rereiveList = utils.AppendWithoutDuplicate(rereiveList, users.Friends)
-	rereiveList = utils.AppendWithoutDuplicate(rereiveList, users.Subscribe)
-	for _, m := range mentions {
-		rereiveList = utils.AppendWithoutDuplicate(rereiveList, []string{m.LocalPart + "@" + m.Domain})
-	}
+		utils.WriteJSON(w, http.StatusOK, friendList)
+	})
+}
 
-	rereiveList = utils.FindMissing(rereiveList, users.Blocks)
+func getCommonFriends(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// read json payload
+		var requestPayload struct {
+			Friends []string `json:"friends"`
+		}
 
-	resp := utils.JSONReceiveUpdates{
-		Success:    true,
-		Message:    "retreive updates successfully",
-		Recipients: rereiveList,
-	}
+		err := utils.ReadJSON(w, r, &requestPayload)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
 
-	utils.WriteJSON(w, http.StatusOK, resp)
+		if len(requestPayload.Friends) != 2 {
+			utils.ErrorJSON(w, errors.New("invalid input"), http.StatusBadRequest)
+		}
 
+		email := requestPayload.Friends[0]
+		friend := requestPayload.Friends[1]
+
+		friendList, er := controller.GetCommonFriends(email, friend)
+		if er != nil {
+			utils.ErrorJSON(w, er)
+			return
+		}
+
+		utils.WriteJSON(w, http.StatusOK, friendList)
+	})
+}
+
+func createSubscribe(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// read json payload
+		var requestPayload struct {
+			Requestor string `json:"requestor"`
+			Target    string `json:"target"`
+		}
+
+		err := utils.ReadJSON(w, r, &requestPayload)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+
+		requestor := requestPayload.Requestor
+		target := requestPayload.Target
+
+		resp, er := controller.CreateSubscribe(requestor, target)
+		if er != nil {
+			utils.ErrorJSON(w, er)
+			return
+		}
+
+		utils.WriteJSON(w, http.StatusOK, resp)
+	})
+}
+
+func createBlock(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// read json payload
+		var requestPayload struct {
+			Requestor string `json:"requestor"`
+			Target    string `json:"target"`
+		}
+
+		err := utils.ReadJSON(w, r, &requestPayload)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+
+		requestor := requestPayload.Requestor
+		target := requestPayload.Target
+
+		err = controller.CreateBlock(requestor, target)
+		if err != nil {
+			utils.ErrorJSON(w, err)
+			return
+		}
+
+		resp := utils.JSONResponse{
+			Success: true,
+			Message: "connection was blocked successfully",
+		}
+
+		utils.WriteJSON(w, http.StatusOK, resp)
+	})
+}
+
+func getRetrieveUpdates(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// read json payload
+		var requestPayload struct {
+			Sender string `json:"sender"`
+			Text   string `json:"text"`
+		}
+
+		err := utils.ReadJSON(w, r, &requestPayload)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+
+		sender := requestPayload.Sender
+		mentions := emailaddress.Find([]byte(requestPayload.Text), false)
+
+		retrieveUpdatesResp, er := controller.GetRetrieveUpdates(sender, mentions)
+
+		if er != nil {
+			utils.ErrorJSON(w, er)
+			return
+		}
+
+		utils.WriteJSON(w, http.StatusOK, retrieveUpdatesResp)
+	})
+}
+
+// MakeUserHandlers: make url handlers
+func MakeUserHandlers(mux *chi.Mux, controller controller.UserInterface) http.Handler {
+
+	mux.Get("/users", list(controller))
+	mux.Post("/user", get(controller))
+	mux.Post("/invite", createFriendship(controller))
+	mux.Post("/friends", getFriendList(controller))
+	mux.Post("/common", getCommonFriends(controller))
+	mux.Post("/subscribe", createSubscribe(controller))
+	mux.Post("/blocks", createBlock(controller))
+	mux.Post("/retrieve", getRetrieveUpdates(controller))
+
+	return mux
 }

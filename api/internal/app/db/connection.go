@@ -9,10 +9,6 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-var (
-	DBConn *sql.DB
-)
-
 func openDB(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
@@ -28,13 +24,12 @@ func openDB(dsn string) (*sql.DB, error) {
 }
 
 // ConnectToDB: use to connect to the database
-func ConnectToDB(dns string) error {
+func ConnectToDB(dns string) (*sql.DB, error) {
 	conn, err := openDB(dns)
-	DBConn = conn
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	log.Println("Connected to Postgres!")
-	return nil
+	return conn, nil
 }

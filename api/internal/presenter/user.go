@@ -2,7 +2,7 @@ package presenter
 
 import "time"
 
-// User: responsible for formatting the data generated as a response by handlers
+// User: responsible for formatting User generated as a response
 type User struct {
 	ID        int       `json:"id"`
 	Name      string    `json:"name"`
@@ -14,6 +14,21 @@ type User struct {
 	UpdatedAt time.Time `json:"-"`
 }
 
+// IsBlock: responsible for checking whether a requestor has blocked target or not
 type IsBlock struct {
 	Blocked bool `json:"blocked"`
+}
+
+// FriendList: responsible for formatting list of friends as a response
+type FriendList struct {
+	Success bool     `json:"success"`
+	Friends []string `json:"friends"`
+	Count   int      `json:"count"`
+}
+
+// RetrieveUpdates: responsible for formatting retrieving updates as a response
+type RetrieveUpdates struct {
+	Success    bool     `json:"success"`
+	Message    string   `json:"message"`
+	Recipients []string `json:"recipients"`
 }
