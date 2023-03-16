@@ -1,11 +1,11 @@
 package controller
 
 import (
+	"github.com/mcnijman/go-emailaddress"
+
 	"backend/api/internal/models"
 	"backend/api/internal/presenter"
 	"backend/api/pkg/utils"
-
-	"github.com/mcnijman/go-emailaddress"
 )
 
 // Reader interface

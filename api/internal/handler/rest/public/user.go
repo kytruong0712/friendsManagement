@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"backend/api/pkg/utils"
 	"errors"
 	"net/http"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/mcnijman/go-emailaddress"
 
 	controller "backend/api/internal/controller/user"
+	"backend/api/pkg/utils"
 )
 
 func list(controller controller.UserInterface) (handlerFn http.HandlerFunc) {

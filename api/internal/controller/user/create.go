@@ -1,9 +1,10 @@
 package controller
 
 import (
+	"fmt"
+
 	"backend/api/pkg/constants"
 	"backend/api/pkg/utils"
-	"fmt"
 )
 
 // CreateFriendship: create a friend connection between two email addresses.

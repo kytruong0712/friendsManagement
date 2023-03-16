@@ -1,15 +1,16 @@
 package repository
 
 import (
-	"backend/api/internal/models"
-	"backend/api/internal/presenter"
-	"backend/api/pkg/constants"
 	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/lib/pq"
+
+	"backend/api/internal/models"
+	"backend/api/internal/presenter"
+	"backend/api/pkg/constants"
 )
 
 const dbTimeout = time.Second * 3

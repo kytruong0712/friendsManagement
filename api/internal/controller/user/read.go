@@ -1,10 +1,10 @@
 package controller
 
 import (
+	"github.com/mcnijman/go-emailaddress"
+
 	"backend/api/internal/presenter"
 	"backend/api/pkg/utils"
-
-	"github.com/mcnijman/go-emailaddress"
 )
 
 // List: Get all users
