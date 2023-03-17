@@ -11,6 +11,13 @@ import (
 	"backend/api/pkg/utils"
 )
 
+// read json payload
+type requestPayload struct {
+	Email string `json:"email"`
+}
+
+// TODO: create type in this file instead of inside function
+
 func list(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		users, err := controller.List()
@@ -25,20 +32,14 @@ func list(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 
 func get(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// read json payload
-		var requestPayload struct {
-			Email string `json:"email"`
-		}
-
-		err := utils.ReadJSON(w, r, &requestPayload)
+		req := requestPayload{}
+		err := utils.ReadJSON(w, r, &req)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
 
-		email := requestPayload.Email
-
-		users, err := controller.Get(email)
+		users, err := controller.Get(req.Email)
 		if err != nil {
 			utils.ErrorJSON(w, err)
 			return
@@ -220,9 +221,9 @@ func getRetrieveUpdates(controller controller.UserInterface) (handlerFn http.Han
 	})
 }
 
+// TODO: Move to routes.go file
 // MakeUserHandlers: make url handlers
 func MakeUserHandlers(mux *chi.Mux, controller controller.UserInterface) http.Handler {
-
 	mux.Get("/users", list(controller))
 	mux.Post("/user", get(controller))
 	mux.Post("/invite", createFriendship(controller))

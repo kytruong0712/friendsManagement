@@ -1,4 +1,4 @@
-package controller
+package user
 
 import (
 	"github.com/mcnijman/go-emailaddress"

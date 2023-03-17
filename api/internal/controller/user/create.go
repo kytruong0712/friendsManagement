@@ -1,4 +1,4 @@
-package controller
+package user
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 func (c UserController) CreateFriendship(email string, friend string) (utils.JSONResponse, error) {
 	errorResp := utils.JSONResponse{
 		Success: false,
-		Message: fmt.Sprintf("Error while creating friendship between %s has blocked %s", email, friend),
+		Message: fmt.Sprintf("Error while creating friendship between %s and %s", email, friend),
 	}
 
 	err := c.repo.CreateRelationship(email, friend, constants.AddFriendToExistingFriendsArray)
