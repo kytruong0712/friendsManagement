@@ -3,8 +3,8 @@ package user
 import (
 	"fmt"
 
-	"backend/api/internal/mod"
-	"backend/api/pkg/constants"
+	"gihub.com/AI-LastWish/friendsManagement/api/internal/mod"
+	"gihub.com/AI-LastWish/friendsManagement/api/pkg/constants"
 )
 
 // CreateFriendship: create a friend connection between two email addresses.

@@ -1,27 +1,25 @@
-version: '3'
-
+version: "3.9"
 services:
-
-  postgres:
-    image: 'postgres:14.5'
+  database:
+    container_name: friendsmgmt-pg
+    image: postgres:latest
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: backend
-    logging:
-      options:
-        max-size: 10m
-        max-file: "3"
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
-      - ./api/internal/app/postgres-data:/var/lib/postgresql/data
-      - ./api/data/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
-
-  # api: api container
-  api:
+      - data:/var/lib/postgresql/data
+  server:
+    container_name: friendsmgmt-api
+    ports:
+      - "3003:3003"
+    depends_on:
+      - database
     build:
-      context: ./api
-      dockerfile: ./Dockerfile
-    restart: always
+      context: .
+      dockerfile: Dockerfile
+volumes:
+  data:

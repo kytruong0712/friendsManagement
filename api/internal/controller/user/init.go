@@ -1,11 +1,10 @@
 package user
 
 import (
+	"gihub.com/AI-LastWish/friendsManagement/api/internal/mod"
+	"gihub.com/AI-LastWish/friendsManagement/api/internal/models"
+	"gihub.com/AI-LastWish/friendsManagement/api/internal/repository/user"
 	"github.com/mcnijman/go-emailaddress"
-
-	"backend/api/internal/mod"
-	"backend/api/internal/models"
-	"backend/api/internal/repository/user"
 )
 
 // Reader interface

@@ -4,11 +4,10 @@ import (
 	"errors"
 	"net/http"
 
+	controller "gihub.com/AI-LastWish/friendsManagement/api/internal/controller/user"
+	"gihub.com/AI-LastWish/friendsManagement/api/internal/presenter"
+	"gihub.com/AI-LastWish/friendsManagement/api/pkg/utils"
 	"github.com/mcnijman/go-emailaddress"
-
-	controller "backend/api/internal/controller/user"
-	"backend/api/internal/presenter"
-	"backend/api/pkg/utils"
 )
 
 // read json payload

@@ -1,8 +1,8 @@
 package user
 
 import (
-	"backend/api/internal/mod"
-	"backend/api/internal/models"
+	"gihub.com/AI-LastWish/friendsManagement/api/internal/mod"
+	"gihub.com/AI-LastWish/friendsManagement/api/internal/models"
 	"database/sql"
 )
 

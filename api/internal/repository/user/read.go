@@ -8,9 +8,9 @@ import (
 
 	"github.com/lib/pq"
 
-	"backend/api/internal/mod"
-	"backend/api/internal/models"
-	"backend/api/pkg/constants"
+	"gihub.com/AI-LastWish/friendsManagement/api/internal/mod"
+	"gihub.com/AI-LastWish/friendsManagement/api/internal/models"
+	"gihub.com/AI-LastWish/friendsManagement/api/pkg/constants"
 )
 
 const dbTimeout = time.Second * 3

@@ -3,9 +3,9 @@ package user
 import (
 	"github.com/mcnijman/go-emailaddress"
 
-	"backend/api/internal/mod"
-	"backend/api/internal/models"
-	"backend/api/pkg/utils"
+	"gihub.com/AI-LastWish/friendsManagement/api/internal/mod"
+	"gihub.com/AI-LastWish/friendsManagement/api/internal/models"
+	"gihub.com/AI-LastWish/friendsManagement/api/pkg/utils"
 )
 
 // List: Get all users
