@@ -20,3 +20,8 @@ services:
       - ./api/data/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   # api: api container
+  api:
+    build:
+      context: ./api
+      dockerfile: ./Dockerfile
+    restart: always

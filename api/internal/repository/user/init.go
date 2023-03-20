@@ -1,8 +1,8 @@
 package user
 
 import (
+	"backend/api/internal/mod"
 	"backend/api/internal/models"
-	"backend/api/internal/presenter"
 	"database/sql"
 )
 
@@ -11,7 +11,7 @@ type Repository interface {
 	List() ([]models.User, error)
 	Get(email string) (models.User, error)
 	CreateRelationship(email string, friend string, stmt string) error
-	IsBlock(requestor string, target string) (*presenter.IsBlock, error)
+	IsBlock(requestor string, target string) (mod.IsBlock, error)
 }
 
 // UserRepository: User Repository

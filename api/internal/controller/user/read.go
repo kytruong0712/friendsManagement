@@ -3,21 +3,22 @@ package user
 import (
 	"github.com/mcnijman/go-emailaddress"
 
-	"backend/api/internal/presenter"
+	"backend/api/internal/mod"
+	"backend/api/internal/models"
 	"backend/api/pkg/utils"
 )
 
 // List: Get all users
-func (c UserController) List() ([]*presenter.User, error) {
+func (c UserController) List() ([]models.User, error) {
 	data, err := c.repo.List()
 
 	if err != nil {
 		return nil, err
 	}
 
-	var users []*presenter.User
+	var users []models.User
 	for _, d := range data {
-		users = append(users, &presenter.User{
+		users = append(users, models.User{
 			ID:        d.ID,
 			Name:      d.Name,
 			Email:     d.Email,
@@ -33,33 +34,23 @@ func (c UserController) List() ([]*presenter.User, error) {
 }
 
 // Get: Get single user by email
-func (c UserController) Get(email string) (*presenter.User, error) {
+func (c UserController) Get(email string) (models.User, error) {
 	data, err := c.repo.Get(email)
 
 	if err != nil {
-		return nil, err
+		return data, err
 	}
 
-	user := &presenter.User{
-		ID:        data.ID,
-		Name:      data.Name,
-		Email:     data.Email,
-		Friends:   data.Friends,
-		Subscribe: data.Subscribe,
-		Blocks:    data.Blocks,
-		CreatedAt: data.CreatedAt,
-		UpdatedAt: data.UpdatedAt,
-	}
-
-	return user, nil
+	return data, nil
 }
 
 // GetFriendList: retrieve the friends list for an email address.
-func (c UserController) GetFriendList(email string) (*presenter.FriendList, error) {
+func (c UserController) GetFriendList(email string) (mod.FriendList, error) {
 	data, err := c.repo.Get(email)
+	resp := mod.FriendList{}
 
 	if err != nil {
-		return nil, err
+		return resp, err
 	}
 
 	count := len(data.Friends)
@@ -69,7 +60,7 @@ func (c UserController) GetFriendList(email string) (*presenter.FriendList, erro
 		friendsList = data.Friends
 	}
 
-	resp := &presenter.FriendList{
+	resp = mod.FriendList{
 		Success: true,
 		Friends: friendsList,
 		Count:   count,
@@ -79,15 +70,16 @@ func (c UserController) GetFriendList(email string) (*presenter.FriendList, erro
 }
 
 // GetCommonFriends: retrieve the common friends list between two email addresses.
-func (c UserController) GetCommonFriends(email string, friend string) (*presenter.FriendList, error) {
+func (c UserController) GetCommonFriends(email string, friend string) (mod.FriendList, error) {
 	users1, err1 := c.repo.Get(email)
+	resp := mod.FriendList{}
 	if err1 != nil {
-		return nil, err1
+		return resp, err1
 	}
 
 	users2, err2 := c.repo.Get(friend)
 	if err2 != nil {
-		return nil, err2
+		return resp, err2
 	}
 
 	friends1 := make([]string, 0)
@@ -108,7 +100,7 @@ func (c UserController) GetCommonFriends(email string, friend string) (*presente
 		}
 	}
 
-	resp := &presenter.FriendList{
+	resp = mod.FriendList{
 		Success: true,
 		Friends: intersect,
 		Count:   len(intersect),
@@ -118,10 +110,11 @@ func (c UserController) GetCommonFriends(email string, friend string) (*presente
 }
 
 // GetRetrieveUpdates: retrieve all email addresses that can receive updates from an email address.
-func (c UserController) GetRetrieveUpdates(sender string, mentions []*emailaddress.EmailAddress) (*presenter.RetrieveUpdates, error) {
+func (c UserController) GetRetrieveUpdates(sender string, mentions []*emailaddress.EmailAddress) (mod.RetrieveUpdates, error) {
 	data, err := c.repo.Get(sender)
+	resp := mod.RetrieveUpdates{}
 	if err != nil {
-		return nil, err
+		return resp, err
 	}
 
 	retrieveList := make([]string, 0)
@@ -133,7 +126,7 @@ func (c UserController) GetRetrieveUpdates(sender string, mentions []*emailaddre
 
 	retrieveList = utils.FindMissing(retrieveList, data.Blocks)
 
-	resp := &presenter.RetrieveUpdates{
+	resp = mod.RetrieveUpdates{
 		Success:    true,
 		Message:    "retrieve updates successfully",
 		Recipients: retrieveList,

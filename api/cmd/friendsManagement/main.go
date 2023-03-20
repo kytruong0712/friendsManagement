@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
+	_ "github.com/joho/godotenv/autoload"
+	pkgErr "github.com/pkg/errors"
 
 	"backend/api/internal/app/db"
-	"backend/api/internal/config"
 	controller "backend/api/internal/controller/user"
-	handler "backend/api/internal/handler/rest/public"
 	repository "backend/api/internal/repository/user"
-
-	pkgErr "github.com/pkg/errors"
+	"backend/api/pkg/constants"
 )
 
 func main() {
-	dataSourceName := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable timezone=UTC connect_timeout=5",
-		config.DB_HOST, config.DB_PORT, config.DB_USER, config.DB_PASSWORD, config.DB_DATABASE)
+	dataSourceName := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable timezone=UTC connect_timeout=5",
+		os.Getenv(constants.DB_HOST), os.Getenv(constants.DB_PORT), os.Getenv(constants.DB_USER), os.Getenv(constants.DB_PASSWORD), os.Getenv(constants.DB_DATABASE))
 
 	// connect to the database
 	conn, err := db.Connect(dataSourceName)
@@ -33,10 +33,10 @@ func main() {
 	userRepo := repository.NewUserRepo(conn)
 	userController := controller.NewUserController(userRepo)
 
-	log.Println("Starting application on port", config.API_PORT)
+	log.Println("Starting application on port", os.Getenv(constants.API_PORT))
 
 	// start a web server
-	if err = http.ListenAndServe(fmt.Sprintf(":%d", config.API_PORT), handler.MakeUserHandlers(router, userController)); err != nil {
+	if err = http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv(constants.API_PORT)), Routes(router, userController)); err != nil {
 		log.Fatal(pkgErr.WithStack(err))
 	}
 }

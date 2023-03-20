@@ -3,13 +3,13 @@ package user
 import (
 	"fmt"
 
+	"backend/api/internal/mod"
 	"backend/api/pkg/constants"
-	"backend/api/pkg/utils"
 )
 
 // CreateFriendship: create a friend connection between two email addresses.
-func (c UserController) CreateFriendship(email string, friend string) (utils.JSONResponse, error) {
-	errorResp := utils.JSONResponse{
+func (c UserController) CreateFriendship(email string, friend string) (mod.UserResponse, error) {
+	errorResp := mod.UserResponse{
 		Success: false,
 		Message: fmt.Sprintf("Error while creating friendship between %s and %s", email, friend),
 	}
@@ -40,7 +40,7 @@ func (c UserController) CreateFriendship(email string, friend string) (utils.JSO
 	}
 
 	if len(data.Blocks) == 0 {
-		return utils.JSONResponse{
+		return mod.UserResponse{
 			Success: true,
 			Message: "create a friend connection successfully",
 		}, nil
@@ -51,13 +51,13 @@ func (c UserController) CreateFriendship(email string, friend string) (utils.JSO
 		}
 
 		if isBlocked.Blocked {
-			resp := utils.JSONResponse{
+			resp := mod.UserResponse{
 				Success: false,
 				Message: fmt.Sprintf("Cannot add friend because %s has blocked %s", email, friend),
 			}
 			return resp, nil
 		} else {
-			resp := utils.JSONResponse{
+			resp := mod.UserResponse{
 				Success: true,
 				Message: "create a friend connection successfully",
 			}
@@ -67,8 +67,8 @@ func (c UserController) CreateFriendship(email string, friend string) (utils.JSO
 }
 
 // CreateSubscribe: subscribe to updates from an email address.
-func (c UserController) CreateSubscribe(requestor string, target string) (utils.JSONResponse, error) {
-	errorResp := utils.JSONResponse{
+func (c UserController) CreateSubscribe(requestor string, target string) (mod.UserResponse, error) {
+	errorResp := mod.UserResponse{
 		Success: false,
 		Message: fmt.Sprintf("Error while creating Subscribe between %s has blocked %s", requestor, target),
 	}
@@ -89,7 +89,7 @@ func (c UserController) CreateSubscribe(requestor string, target string) (utils.
 	}
 
 	if len(data.Blocks) == 0 {
-		return utils.JSONResponse{
+		return mod.UserResponse{
 			Success: true,
 			Message: "create a subscribe successfully",
 		}, nil
@@ -100,13 +100,13 @@ func (c UserController) CreateSubscribe(requestor string, target string) (utils.
 		}
 
 		if isBlocked.Blocked {
-			resp := utils.JSONResponse{
+			resp := mod.UserResponse{
 				Success: false,
 				Message: fmt.Sprintf("Cannot subscribe because %s has blocked %s", requestor, target),
 			}
 			return resp, nil
 		} else {
-			resp := utils.JSONResponse{
+			resp := mod.UserResponse{
 				Success: true,
 				Message: "create a subscribe successfully",
 			}

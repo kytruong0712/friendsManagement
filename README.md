@@ -5,4 +5,4 @@
 In the project directory, you can run:
 
 ### `docker-compose up -d`
-### `go run ./api/cmd/friendsManagement/main.go`
+### `go run ./api/cmd/friendsManagement`

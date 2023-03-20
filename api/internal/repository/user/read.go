@@ -8,8 +8,8 @@ import (
 
 	"github.com/lib/pq"
 
+	"backend/api/internal/mod"
 	"backend/api/internal/models"
-	"backend/api/internal/presenter"
 	"backend/api/pkg/constants"
 )
 
@@ -83,9 +83,11 @@ func (repo *UserRepository) Get(email string) (models.User, error) {
 }
 
 // Verify whether requestor has already blocked target or not
-func (repo *UserRepository) IsBlock(requestor string, target string) (*presenter.IsBlock, error) {
+func (repo *UserRepository) IsBlock(requestor string, target string) (mod.IsBlock, error) {
+	isBlock := mod.IsBlock{}
+
 	if requestor == target {
-		return nil, errors.New("2 input emails are the same")
+		return isBlock, errors.New("2 input emails are the same")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
@@ -93,28 +95,26 @@ func (repo *UserRepository) IsBlock(requestor string, target string) (*presenter
 
 	_, err := repo.Get(requestor)
 	if err != nil {
-		return nil, err
+		return isBlock, err
 	}
 
 	_, errTarget := repo.Get(target)
 	if errTarget != nil {
-		return nil, errTarget
+		return isBlock, errTarget
 	}
 
 	query := constants.VerifyBlock
 
 	row := repo.db.QueryRowContext(ctx, query, requestor, target)
 
-	var blocked presenter.IsBlock
-
 	err = row.Scan(
-		&blocked.Blocked,
+		isBlock.Blocked,
 	)
 
 	if err != nil {
 		fmt.Println("blocked error", err)
-		return nil, err
+		return isBlock, err
 	}
 
-	return &blocked, nil
+	return isBlock, nil
 }

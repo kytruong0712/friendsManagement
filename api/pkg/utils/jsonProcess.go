@@ -10,9 +10,8 @@ import (
 )
 
 type JSONResponse struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
 // WriteJSON: Write data to JSON

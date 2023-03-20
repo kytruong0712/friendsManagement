@@ -1,45 +1,72 @@
-package handler
+package user
 
 import (
 	"errors"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/mcnijman/go-emailaddress"
 
 	controller "backend/api/internal/controller/user"
+	"backend/api/internal/presenter"
 	"backend/api/pkg/utils"
 )
 
 // read json payload
-type requestPayload struct {
+type emailRequestPayload struct {
 	Email string `json:"email"`
+}
+
+type friendRequestPayload struct {
+	Friends []string `json:"friends"`
+}
+
+type requestorRequestPayload struct {
+	Requestor string `json:"requestor"`
+	Target    string `json:"target"`
+}
+
+type senderRequestPayload struct {
+	Sender string `json:"sender"`
+	Text   string `json:"text"`
 }
 
 // TODO: create type in this file instead of inside function
 
-func list(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+func List(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		users, err := controller.List()
+		data, err := controller.List()
 		if err != nil {
 			utils.ErrorJSON(w, err)
 			return
+		}
+		var users []presenter.User
+		for _, d := range data {
+			users = append(users, presenter.User{
+				ID:        d.ID,
+				Name:      d.Name,
+				Email:     d.Email,
+				Friends:   d.Friends,
+				Subscribe: d.Subscribe,
+				Blocks:    d.Blocks,
+				CreatedAt: d.CreatedAt,
+				UpdatedAt: d.UpdatedAt,
+			})
 		}
 
 		utils.WriteJSON(w, http.StatusOK, users)
 	})
 }
 
-func get(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+func Get(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := requestPayload{}
-		err := utils.ReadJSON(w, r, &req)
+		requestPayload := emailRequestPayload{}
+		err := utils.ReadJSON(w, r, &requestPayload)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
 
-		users, err := controller.Get(req.Email)
+		users, err := controller.Get(requestPayload.Email)
 		if err != nil {
 			utils.ErrorJSON(w, err)
 			return
@@ -49,12 +76,9 @@ func get(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 	})
 }
 
-func createFriendship(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+func CreateFriendship(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// read json payload
-		var requestPayload struct {
-			Friends []string `json:"friends"`
-		}
+		requestPayload := friendRequestPayload{}
 
 		err := utils.ReadJSON(w, r, &requestPayload)
 		if err != nil {
@@ -79,12 +103,9 @@ func createFriendship(controller controller.UserInterface) (handlerFn http.Handl
 	})
 }
 
-func getFriendList(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+func GetFriendList(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// read json payload
-		var requestPayload struct {
-			Email string `json:"email"`
-		}
+		requestPayload := emailRequestPayload{}
 
 		err := utils.ReadJSON(w, r, &requestPayload)
 		if err != nil {
@@ -104,12 +125,9 @@ func getFriendList(controller controller.UserInterface) (handlerFn http.HandlerF
 	})
 }
 
-func getCommonFriends(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+func GetCommonFriends(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// read json payload
-		var requestPayload struct {
-			Friends []string `json:"friends"`
-		}
+		requestPayload := friendRequestPayload{}
 
 		err := utils.ReadJSON(w, r, &requestPayload)
 		if err != nil {
@@ -134,13 +152,9 @@ func getCommonFriends(controller controller.UserInterface) (handlerFn http.Handl
 	})
 }
 
-func createSubscribe(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+func CreateSubscribe(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// read json payload
-		var requestPayload struct {
-			Requestor string `json:"requestor"`
-			Target    string `json:"target"`
-		}
+		requestPayload := requestorRequestPayload{}
 
 		err := utils.ReadJSON(w, r, &requestPayload)
 		if err != nil {
@@ -161,13 +175,9 @@ func createSubscribe(controller controller.UserInterface) (handlerFn http.Handle
 	})
 }
 
-func createBlock(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+func CreateBlock(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// read json payload
-		var requestPayload struct {
-			Requestor string `json:"requestor"`
-			Target    string `json:"target"`
-		}
+		requestPayload := requestorRequestPayload{}
 
 		err := utils.ReadJSON(w, r, &requestPayload)
 		if err != nil {
@@ -193,13 +203,9 @@ func createBlock(controller controller.UserInterface) (handlerFn http.HandlerFun
 	})
 }
 
-func getRetrieveUpdates(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
+func GetRetrieveUpdates(controller controller.UserInterface) (handlerFn http.HandlerFunc) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// read json payload
-		var requestPayload struct {
-			Sender string `json:"sender"`
-			Text   string `json:"text"`
-		}
+		requestPayload := senderRequestPayload{}
 
 		err := utils.ReadJSON(w, r, &requestPayload)
 		if err != nil {
@@ -219,19 +225,4 @@ func getRetrieveUpdates(controller controller.UserInterface) (handlerFn http.Han
 
 		utils.WriteJSON(w, http.StatusOK, retrieveUpdatesResp)
 	})
-}
-
-// TODO: Move to routes.go file
-// MakeUserHandlers: make url handlers
-func MakeUserHandlers(mux *chi.Mux, controller controller.UserInterface) http.Handler {
-	mux.Get("/users", list(controller))
-	mux.Post("/user", get(controller))
-	mux.Post("/invite", createFriendship(controller))
-	mux.Post("/friends", getFriendList(controller))
-	mux.Post("/common", getCommonFriends(controller))
-	mux.Post("/subscribe", createSubscribe(controller))
-	mux.Post("/blocks", createBlock(controller))
-	mux.Post("/retrieve", getRetrieveUpdates(controller))
-
-	return mux
 }

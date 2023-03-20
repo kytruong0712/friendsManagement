@@ -3,24 +3,24 @@ package user
 import (
 	"github.com/mcnijman/go-emailaddress"
 
-	"backend/api/internal/presenter"
+	"backend/api/internal/mod"
+	"backend/api/internal/models"
 	"backend/api/internal/repository/user"
-	"backend/api/pkg/utils"
 )
 
 // Reader interface
 type Reader interface {
-	List() ([]*presenter.User, error)
-	Get(email string) (*presenter.User, error)
-	GetFriendList(email string) (*presenter.FriendList, error)
-	GetCommonFriends(email string, friend string) (*presenter.FriendList, error)
-	GetRetrieveUpdates(sender string, mentions []*emailaddress.EmailAddress) (*presenter.RetrieveUpdates, error)
+	List() ([]models.User, error)
+	Get(email string) (models.User, error)
+	GetFriendList(email string) (mod.FriendList, error)
+	GetCommonFriends(email string, friend string) (mod.FriendList, error)
+	GetRetrieveUpdates(sender string, mentions []*emailaddress.EmailAddress) (mod.RetrieveUpdates, error)
 }
 
 // Writer user writer
 type Writer interface {
-	CreateFriendship(email string, friend string) (utils.JSONResponse, error)
-	CreateSubscribe(requestor string, target string) (utils.JSONResponse, error)
+	CreateFriendship(email string, friend string) (mod.UserResponse, error)
+	CreateSubscribe(requestor string, target string) (mod.UserResponse, error)
 	CreateBlock(requestor string, target string) error
 }
 
